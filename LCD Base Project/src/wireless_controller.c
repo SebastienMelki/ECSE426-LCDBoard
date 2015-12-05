@@ -1,6 +1,9 @@
 #include "wireless_controller.h"
 #include <stdio.h>
+#include "LCDPathDrawing.h"
 
+
+#define RECEPTION_THRESHOLD 2
 
 uint8_t dummy_byte = DUMMY_BYTE;
 uint8_t status_byte = 0; // status byte
@@ -44,15 +47,6 @@ void set_receive_mode() {
 		CC2500_Read(&status_byte, CC2500_SRX, 1);
 		CC2500_Read(&m_state_set_receive, CC2500_MARCSTATE, 2);
 	}
-	
-	/*
-	uint8_t flag = status_byte & state_mask;
-	while (flag != 16) {
-		flush_RXFIFO();
-		CC2500_Read(&status_byte, CC2500_SRX, 1);
-		flag = status_byte & state_mask;
-	}
-	*/
 }
 
 void flush_RXFIFO() {
@@ -66,18 +60,25 @@ void flush_TXFIFO() {
 //TODO: proper timer to avoid skipping values
 uint8_t bytes_received = 0;
 uint8_t m_state_read_rxfifo;
+
+heading_pair receivedPairs[20];
+int pairIndex = 0;
+
 void read_RXFIFO() {
+	fill_with_zeros(buffer, 64);
+	int Sreceived = 0;
+	int Hreceived = 0;
+	
+	int currentHeading = -1;
+	int currentStep = -1;
+	int headingLocked = 0;
+	int stepLocked = 0;
+	
 	set_receive_mode();
 	CC2500_Read(&bytes_received, CC2500_RXBYTES, 2);
 	int bytes_read = 0;
 	uint32_t i;
-	
-	//TODO: Investigate why bytes_received is acting like a mofo
-	/*
-	while (bytes_received == 0) { // busy wait
-		CC2500_Read(&bytes_received, CC2500_RXBYTES, 2);
-		for (i = 0; i < 16800000; i++);
-	}*/
+
 	while (1) { // this should be replaced with check on number of bytes received
 		CC2500_Read((buffer + bytes_read), CC2500_FIFO, 1);
 		CC2500_Read(&bytes_received, CC2500_RXBYTES, 2);
@@ -86,8 +87,43 @@ void read_RXFIFO() {
 		if (m_state_read_rxfifo != 13 && m_state_read_rxfifo != 14 && m_state_read_rxfifo != 15) {
 			set_receive_mode();
 		}
-		bytes_read = (bytes_read + 1)  % 32; // change to buffer length for greater modularity
+		
+		if (*(buffer + bytes_read) == 'S') {
+			Sreceived = 1;
+		}
+		
+		if (stepLocked == 0 && Sreceived == 1 && *(buffer + bytes_read) != 'S') {
+			currentStep = *(buffer + bytes_read);
+			Sreceived = 0;
+			stepLocked = 1;
+		}
+		
+		if (*(buffer + bytes_read) == 'H') {
+			Hreceived = 1;
+		}
+		
+		if (headingLocked == 0 && Hreceived == 1 && *(buffer + bytes_read) != 'H' && *(buffer + bytes_read) < 9) {
+			currentHeading = *(buffer + bytes_read);
+			Hreceived = 0;
+			headingLocked = 1;
+		}
+		
+		if (currentHeading != -1 && currentStep != -1) {
+			receivedPairs[pairIndex].heading = currentHeading * 45;
+			receivedPairs[pairIndex].step_count = currentStep;
+			currentHeading = -1;
+			currentStep = -1;
+			stepLocked = 0;
+			headingLocked = 0;
+			pairIndex++;
+		}
+		if (pairIndex == 4) {
+			break;
+		}
+		bytes_read = (bytes_read + 1)  % 32; // change to buffer length for greater modularity		
 	}
+	
+	int j;
 }
 
 uint8_t write_test[5]= {2, 2, 'A', 'X', 'T'};

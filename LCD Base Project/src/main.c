@@ -16,6 +16,7 @@
 #include <string.h>
 
 #include "wireless_controller.h"
+#include "LCDPathDrawing.h"
 
 
 /*
@@ -26,14 +27,14 @@
 // uint8_t m_state = 0;
 // uint8_t write_test_sed[4]= {'2', '2', 'X', '2'};
 
-//heading_pair  pairs[] = {{5, 0.0}, {5, 45.0}, {5, 135.0}, {5, 180.0}};
+heading_pair  pairs[] = {{1, 0}, {1, 0}, {3, 90}, {2, 135}};
 
 int main (void) {
-	CC2500_LowLevel_Init();
-	setup();
-	flush_RXFIFO();
-	read_RXFIFO();
-	//drawTrajectory(pairs, 4); 
+	//CC2500_LowLevel_Init();
+	//setup();
+	//flush_RXFIFO();
+	//read_RXFIFO();
+	drawTrajectory(pairs, 4); 
 }
 
 

@@ -1,6 +1,5 @@
 #include "wireless_controller.h"
 #include <stdio.h>
-#include "LCDPathDrawing.h"
 
 
 #define RECEPTION_THRESHOLD 2
@@ -61,11 +60,12 @@ void flush_TXFIFO() {
 uint8_t bytes_received = 0;
 uint8_t m_state_read_rxfifo;
 
-heading_pair receivedPairs[20];
-int pairIndex = 0;
+//heading_pair receivedPairs[20];
+//int pairIndex = 0;
 
 void read_RXFIFO() {
 	fill_with_zeros(buffer, 64);
+	/*
 	int Sreceived = 0;
 	int Hreceived = 0;
 	
@@ -73,7 +73,7 @@ void read_RXFIFO() {
 	int currentStep = -1;
 	int headingLocked = 0;
 	int stepLocked = 0;
-	
+	*/
 	set_receive_mode();
 	CC2500_Read(&bytes_received, CC2500_RXBYTES, 2);
 	int bytes_read = 0;
@@ -88,6 +88,7 @@ void read_RXFIFO() {
 			set_receive_mode();
 		}
 		
+		/*
 		if (*(buffer + bytes_read) == 'S') {
 			Sreceived = 1;
 		}
@@ -120,10 +121,9 @@ void read_RXFIFO() {
 		if (pairIndex == 4) {
 			break;
 		}
+		*/
 		bytes_read = (bytes_read + 1)  % 32; // change to buffer length for greater modularity		
 	}
-	
-	int j;
 }
 
 uint8_t write_test[5]= {2, 2, 'A', 'X', 'T'};

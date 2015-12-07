@@ -1,7 +1,14 @@
 #include "LCDPathDrawing.h"
 
-LCDPoint path[100];
+LCDPoint path[100]; // Array that will contain the entire path in Cartesian coordinates
 
+
+/**
+  * @brief  Computes x coordinate from polar coordinates
+  * @param  angle The angle of the polar vector
+  * @param  r The radius (or number of steps) of the polar vector
+  * @retval x coordinate of polar vector.
+  */
 int getXFromPolar(float angle, int r) {
 	float temp;
 	temp = r * cos((180 - angle) * PI / 180);
@@ -13,6 +20,12 @@ int getXFromPolar(float angle, int r) {
 	return (int)(temp);
 }
 
+/**
+  * @brief  Computes y coordinate from polar coordinates
+  * @param  angle The angle of the polar vector
+  * @param  r The radius (or number of steps) of the polar vector
+  * @retval y coordinate of polar vector.
+  */
 int getYFromPolar(float angle, int r) {
 	float temp;
 	temp = r * sin((180 - angle) * PI / 180);
@@ -24,6 +37,12 @@ int getYFromPolar(float angle, int r) {
 	return (int)(temp);
 }
 
+/**
+  * @brief  Converts a polar path into a Cartesian path
+  * @param  heading The Polar path
+  * @param  r The radius (or number of steps) of the polar vector
+  * @retval x coordinate of polar vector.
+  */
 void convertHeadingToCartesian(heading_pair * heading, int length) {	
 	int i;
 	int gtrdn = 0;
@@ -40,6 +59,9 @@ void convertHeadingToCartesian(heading_pair * heading, int length) {
 	}
 }
 
+/**
+  * @brief  Draws a border along defined screen mins and mass
+  */
 void drawBorder() {
 	LCD_DrawUniLine(X_MIN, Y_MIN, X_MIN, Y_MAX);
 	LCD_DrawUniLine(X_MIN, Y_MAX, X_MAX, Y_MAX);
@@ -47,6 +69,12 @@ void drawBorder() {
 	LCD_DrawUniLine(X_MAX, Y_MIN, X_MIN, Y_MIN);
 }
 
+/**
+  * @brief  Finds minimum y coordinate in Cartesian path
+  * @param  path The Cartesian path
+  * @param  length The size of the path
+  * @retval min y coordinate in path
+  */
 int getMinY(LCDPoint * path, int length) {
 	int min = path->y;
 	int i;	
@@ -58,6 +86,12 @@ int getMinY(LCDPoint * path, int length) {
 	return min;
 }
 
+/**
+  * @brief  Finds minimum x coordinate in Cartesian path
+  * @param  path The Cartesian path
+  * @param  length The size of the path
+  * @retval min x coordinate in path
+  */
 int getMinX(LCDPoint * path, int length) {
 	int min = path->x;
 	int i;	
@@ -69,6 +103,12 @@ int getMinX(LCDPoint * path, int length) {
 	return min;
 }
 
+/**
+  * @brief  Finds maximum y coordinate in Cartesian path
+  * @param  path The Cartesian path
+  * @param  length The size of the path
+  * @retval max y coordinate in path
+  */
 int getMaxY(LCDPoint * path, int length) {
 	int max = path->y;
 	int i;
@@ -81,6 +121,12 @@ int getMaxY(LCDPoint * path, int length) {
 	return max;	
 }
 
+/**
+  * @brief  Finds maximum x coordinate in Cartesian path
+  * @param  path The Cartesian path
+  * @param  length The size of the path
+  * @retval max x coordinate in path
+  */
 int getMaxX(LCDPoint * path, int length) {
 	int max = path->x;
 	int i;
@@ -93,18 +139,34 @@ int getMaxX(LCDPoint * path, int length) {
 	return max;		
 }
 
+/**
+  * @brief  Scales an x value depending on the defined screen borders and the given extremums 
+  * @param  pathX The Cartesian x coordinate to be scaled
+  * @param  pathMinX The minimum x coordinate in the path
+  * @param  pathMaxX The maximum x coordinate in the path
+  * @retval Scaled x coordinate
+  */
 int getScaledX(int pathX, int pathMinX, int pathMaxX) {
 	float scaleFactor = (X_MAX - X_MIN) / (pathMaxX - pathMinX);
 	return X_MIN + (scaleFactor * (pathX - pathMinX));
 }
 
+/**
+  * @brief  Scales an y value depending on the defined screen borders and the given extremums 
+  * @param  pathX The Cartesian y coordinate to be scaled
+  * @param  pathMinX The minimum y coordinate in the path
+  * @param  pathMaxX The maximum y coordinate in the path
+  * @retval Scaled y coordinate
+  */
 int getScaledY(int pathY, int pathMinY, int pathMaxY) { // Takes care of transformation from LCD coordinate system to real coodinate system
 	float scaleFactor = (Y_MAX - Y_MIN) / (pathMaxY - pathMinY);
 	return Y_MAX - (scaleFactor * (pathY - pathMinY));
 }	
 
-LCDPoint potato[] = {{0, 0}, {4, 9}, {0, 17}, {-9, 19}, {-14, 11}, {-23, 7}};
-
+/**
+  * @brief  Draws the given path on the LCD screen 
+  * @param  length The size of the path
+  */
 void drawPath(int length) {	
 	int pathMinX = getMinX(path, length);
 	int pathMinY = getMinY(path, length);
@@ -155,7 +217,13 @@ void drawPath(int length) {
 		LCD_DrawUniLine(x1, y1, x2, y2);
 	}		
 }
-	void drawTrajectory(heading_pair * pair, int length) {
+
+/**
+  * @brief  Takes care of initializations necessary for drawing on the LCD screen and calls the drawPath() method 
+  * @param  pair The polar path
+  * @param  length The size of the polar path
+  */
+void drawTrajectory(heading_pair * pair, int length) {
 		/* LCD initiatization */
 		LCD_Init();
 		/* LCD Layer initiatization */
@@ -168,5 +236,5 @@ void drawPath(int length) {
 		
 		convertHeadingToCartesian(pair, length);
 		drawPath(length + 1);
-	}
+}
 	
